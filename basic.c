@@ -513,3 +513,150 @@ double my_fmod(double x, double y) {
     int quotient = (int)(x / y);
     return x - quotient * y;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* 簡單的記憶體管理（模擬實現，實際上需要系統調用） */
+static char mem_pool[1024 * 1024]; /* 1MB 靜態記憶體池 */
+static size_t mem_used = 0;
+
+void *malloc(size_t size) {
+    if (size == 0 || mem_used + size > sizeof(mem_pool)) {
+        return NULL;
+    }
+    void *ptr = mem_pool + mem_used;
+    mem_used += size;
+    return ptr;
+}
+
+void *calloc(size_t nmemb, size_t size) {
+    size_t total = nmemb * size;
+    void *ptr = malloc(total);
+    if (ptr) {
+        for (size_t i = 0; i < total; i++) {
+            ((char *)ptr)[i] = 0;
+        }
+    }
+    return ptr;
+}
+
+void *realloc(void *ptr, size_t size) {
+    if (!ptr) return malloc(size);
+    if (size == 0) {
+        free(ptr);
+        return NULL;
+    }
+    /* 簡化實現：僅分配新記憶體並複製 */
+    void *new_ptr = malloc(size);
+    if (new_ptr && ptr) {
+        for (size_t i = 0; i < size; i++) {
+            ((char *)new_ptr)[i] = ((char *)ptr)[i];
+        }
+    }
+    return new_ptr;
+}
+
+void free(void *ptr) {
+    /* 簡化實現：不實際釋放，僅供示範 */
+    (void)ptr;
+}
+
+/* 字串轉換 */
+int atoi(const char *str) {
+    int result = 0;
+    int sign = 1;
+    while (*str == ' ') str++;
+    if (*str == '-') {
+        sign = -1;
+        str++;
+    } else if (*str == '+') {
+        str++;
+    }
+    while (*str >= '0' && *str <= '9') {
+        result = result * 10 + (*str - '0');
+        str++;
+    }
+    return sign * result;
+}
+
+long atol(const char *str) {
+    long result = 0;
+    int sign = 1;
+    while (*str == ' ') str++;
+    if (*str == '-') {
+        sign = -1;
+        str++;
+    } else if (*str == '+') {
+        str++;
+    }
+    while (*str >= '0' && *str <= '9') {
+        result = result * 10 + (*str - '0');
+        str++;
+    }
+    return sign * result;
+}
+
+double atof(const char *str) {
+    double result = 0.0;
+    double fraction = 0.0;
+    double divisor = 1.0;
+    int sign = 1;
+    while (*str == ' ') str++;
+    if (*str == '-') {
+        sign = -1;
+        str++;
+    } else if (*str == '+') {
+        str++;
+    }
+    while (*str >= '0' && *str <= '9') {
+        result = result * 10.0 + (*str - '0');
+        str++;
+    }
+    if (*str == '.') {
+        str++;
+        while (*str >= '0' && *str <= '9') {
+            fraction = fraction * 10.0 + (*str - '0');
+            divisor *= 10.0;
+            str++;
+        }
+    }
+    return sign * (result + fraction / divisor);
+}
+
+/* 隨機數生成 */
+static unsigned int next = 1;
+
+void srand(unsigned int seed) {
+    next = seed;
+}
+
+int rand(void) {
+    next = next * 1103515245 + 12345;
+    return (int)((next >> 16) & RAND_MAX);
+}
+
+/* 程式終止 */
+void exit(int status) {
+    /* 模擬退出，實際上應調用系統退出函數 */
+    while (1);
+}
+
+void abort(void) {
+    exit(EXIT_FAILURE);
+}
+
+/* 環境變數（簡單實現） */
+char *getenv(const char *name) {
+    /* 模擬實現：始終返回 NULL */
+    return NULL;
+}

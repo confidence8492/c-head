@@ -104,3 +104,34 @@ double my_floor(double x);
 double my_fabs(double x);
 double my_fmod(double x, double y);
 
+
+
+#include "stddef.h"
+
+/* 定義常見的宏 */
+#define NULL ((void *)0)
+#define EXIT_SUCCESS 0
+#define EXIT_FAILURE 1
+#define RAND_MAX 32767
+
+/* 記憶體管理函數 */
+void *malloc(size_t size);
+void *calloc(size_t nmemb, size_t size);
+void *realloc(void *ptr, size_t size);
+void free(void *ptr);
+
+/* 字串轉換函數 */
+int atoi(const char *str);
+long atol(const char *str);
+double atof(const char *str);
+
+/* 隨機數生成 */
+void srand(unsigned int seed);
+int rand(void);
+
+/* 程式終止 */
+void exit(int status);
+void abort(void);
+
+/* 環境變數 */
+char *getenv(const char *name);
