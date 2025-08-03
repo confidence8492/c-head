@@ -55,3 +55,52 @@ int cmp(const char *str1, const char *str2);
 /* 在 str 中查找 sub 的第一次出現，返回指向該位置的指標或 NULL */
 char *str(const char *str, const char *sub);
 
+
+
+// 字符分類函數
+int my_isalnum(int c);
+int my_isalpha(int c);
+int my_isdigit(int c);
+int my_islower(int c);
+int my_isupper(int c);
+int my_isspace(int c);
+int my_isprint(int c);
+int my_ispunct(int c);
+int my_iscntrl(int c);
+int my_isxdigit(int c);
+
+// 字符轉換函數
+int my_tolower(int c);
+int my_toupper(int c);
+
+
+
+/* 數學常數 */
+#define MY_PI 3.14159265358979323846      /* π */
+#define MY_E 2.71828182845904523536       /* e */
+#define MY_SQRT2 1.41421356237309504880   /* 根號2 */
+#define MY_LN2 0.69314718055994530942     /* ln(2) */
+#define MY_LN10 2.30258509299404568402    /* ln(10) */
+
+/* 無窮大和非數值 */
+#define MY_INFINITY (1.0 / 0.0)
+#define MY_NAN (0.0 / 0.0)
+
+/* 函數原型 */
+double my_sin(double x);
+double my_cos(double x);
+double my_tan(double x);
+double my_asin(double x);
+double my_acos(double x);
+double my_atan(double x);
+double my_atan2(double y, double x);
+double my_exp(double x);
+double my_log(double x);
+double my_log10(double x);
+double my_pow(double x, double y);
+double my_sqrt(double x);
+double my_ceil(double x);
+double my_floor(double x);
+double my_fabs(double x);
+double my_fmod(double x, double y);
+

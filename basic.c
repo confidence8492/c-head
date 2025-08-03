@@ -184,3 +184,332 @@ char *str(const char *str, const char *sub) {
     }
     return NULL; /* 未找到 */
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 字符分類表（位陣列）
+#define CT_ALNUM  0x01  // 字母或數字
+#define CT_ALPHA  0x02  // 字母
+#define CT_DIGIT  0x04  // 數字
+#define CT_LOWER  0x08  // 小寫
+#define CT_UPPER  0x10  // 大寫
+#define CT_SPACE  0x20  // 空白
+#define CT_PRINT  0x40  // 可列印
+#define CT_PUNCT  0x80  // 標點
+#define CT_CTRL   0x100 // 控制字符
+#define CT_XDIGIT 0x200 // 十六進制數字
+
+// 靜態查找表，涵蓋 ASCII 0-127 和 EOF (-1)
+static const unsigned short ctype_table[128] = {
+    // 0-31: 控制字符
+    CT_CTRL, CT_CTRL, CT_CTRL, CT_CTRL, CT_CTRL, CT_CTRL, CT_CTRL, CT_CTRL,
+    CT_CTRL, CT_CTRL | CT_SPACE, CT_CTRL | CT_SPACE, CT_CTRL | CT_SPACE,
+    CT_CTRL | CT_SPACE, CT_CTRL | CT_SPACE, CT_CTRL, CT_CTRL,
+    CT_CTRL, CT_CTRL, CT_CTRL, CT_CTRL, CT_CTRL, CT_CTRL, CT_CTRL, CT_CTRL,
+    CT_CTRL, CT_CTRL, CT_CTRL, CT_CTRL, CT_CTRL, CT_CTRL, CT_CTRL, CT_CTRL,
+    // 32-47: 空格和標點
+    CT_SPACE | CT_PRINT, CT_PUNCT | CT_PRINT, CT_PUNCT | CT_PRINT, CT_PUNCT | CT_PRINT,
+    CT_PUNCT | CT_PRINT, CT_PUNCT | CT_PRINT, CT_PUNCT | CT_PRINT, CT_PUNCT | CT_PRINT,
+    CT_PUNCT | CT_PRINT, CT_PUNCT | CT_PRINT, CT_PUNCT | CT_PRINT, CT_PUNCT | CT_PRINT,
+    CT_PUNCT | CT_PRINT, CT_PUNCT | CT_PRINT, CT_PUNCT | CT_PRINT, CT_PUNCT | CT_PRINT,
+    // 48-57: 數字
+    CT_DIGIT | CT_ALNUM | CT_PRINT | CT_XDIGIT, CT_DIGIT | CT_ALNUM | CT_PRINT | CT_XDIGIT,
+    CT_DIGIT | CT_ALNUM | CT_PRINT | CT_XDIGIT, CT_DIGIT | CT_ALNUM | CT_PRINT | CT_XDIGIT,
+    CT_DIGIT | CT_ALNUM | CT_PRINT | CT_XDIGIT, CT_DIGIT | CT_ALNUM | CT_PRINT | CT_XDIGIT,
+    CT_DIGIT | CT_ALNUM | CT_PRINT | CT_XDIGIT, CT_DIGIT | CT_ALNUM | CT_PRINT | CT_XDIGIT,
+    CT_DIGIT | CT_ALNUM | CT_PRINT | CT_XDIGIT, CT_DIGIT | CT_ALNUM | CT_PRINT | CT_XDIGIT,
+    // 58-64: 標點
+    CT_PUNCT | CT_PRINT, CT_PUNCT | CT_PRINT, CT_PUNCT | CT_PRINT, CT_PUNCT | CT_PRINT,
+    CT_PUNCT | CT_PRINT, CT_PUNCT | CT_PRINT, CT_PUNCT | CT_PRINT,
+    // 65-90: 大寫字母
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT | CT_XDIGIT, // A
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT | CT_XDIGIT, // B
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT | CT_XDIGIT, // C
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT | CT_XDIGIT, // D
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT | CT_XDIGIT, // E
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT | CT_XDIGIT, // F
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT, // G-Z
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_UPPER | CT_PRINT,
+    // 91-96: 標點
+    CT_PUNCT | CT_PRINT, CT_PUNCT | CT_PRINT, CT_PUNCT | CT_PRINT, CT_PUNCT | CT_PRINT,
+    CT_PUNCT | CT_PRINT, CT_PUNCT | CT_PRINT,
+    // 97-122: 小寫字母
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT | CT_XDIGIT, // a
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT | CT_XDIGIT, // b
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT | CT_XDIGIT, // c
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT | CT_XDIGIT, // d
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT | CT_XDIGIT, // e
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT | CT_XDIGIT, // f
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT, // g-z
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT,
+    CT_ALPHA | CT_ALNUM | CT_LOWER | CT_PRINT,
+    // 123-126: 標點
+    CT_PUNCT | CT_PRINT, CT_PUNCT | CT_PRINT, CT_PUNCT | CT_PRINT, CT_PUNCT | CT_PRINT,
+    // 127: 控制字符
+    CT_CTRL
+};
+
+// 分類函數實現
+#define CHECK_CTYPE(c, type) ((c) >= 0 && (c) < 128 ? (ctype_table[(unsigned char)(c)] & (type)) != 0 : 0)
+
+int my_isalnum(int c) { return CHECK_CTYPE(c, CT_ALNUM); }
+int my_isalpha(int c) { return CHECK_CTYPE(c, CT_ALPHA); }
+int my_isdigit(int c) { return CHECK_CTYPE(c, CT_DIGIT); }
+int my_islower(int c) { return CHECK_CTYPE(c, CT_LOWER); }
+int my_isupper(int c) { return CHECK_CTYPE(c, CT_UPPER); }
+int my_isspace(int c) { return CHECK_CTYPE(c, CT_SPACE); }
+int my_isprint(int c) { return CHECK_CTYPE(c, CT_PRINT); }
+int my_ispunct(int c) { return CHECK_CTYPE(c, CT_PUNCT); }
+int my_iscntrl(int c) { return CHECK_CTYPE(c, CT_CTRL); }
+int my_isxdigit(int c) { return CHECK_CTYPE(c, CT_XDIGIT); }
+
+// 字符轉換函數
+int my_tolower(int c) {
+    if (my_isupper(c)) {
+        return c + ('a' - 'A'); // ASCII 中，a-A = 32
+    }
+    return c;
+}
+
+int my_toupper(int c) {
+    if (my_islower(c)) {
+        return c - ('a' - 'A'); // ASCII 中，a-A = 32
+    }
+    return c;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* 輔助函數：模範化角度到 [-π, π] */
+static double normalize_angle(double x) {
+    while (x > MY_PI) x -= 2.0 * MY_PI;
+    while (x < -MY_PI) x += 2.0 * MY_PI;
+    return x;
+}
+
+/* 三角函數：sin 使用泰勒展開 */
+double my_sin(double x) {
+    x = normalize_angle(x); /* 將角度規範化 */
+    double result = x, term = x;
+    int n = 1;
+    while (my_fabs(term) > 1e-10) { /* 精度控制 */
+        term *= -x * x / ((2 * n) * (2 * n + 1)); /* 泰勒展開項：(-1)^n * x^(2n+1) / (2n+1)! */
+        result += term;
+        n++;
+    }
+    return result;
+}
+
+/* 三角函數：cos 使用泰勒展開 */
+double my_cos(double x) {
+    x = normalize_angle(x);
+    double result = 1.0, term = 1.0;
+    int n = 1;
+    while (my_fabs(term) > 1e-10) {
+        term *= -x * x / ((2 * n - 1) * (2 * n)); /* 泰勒展開項：(-1)^n * x^(2n) / (2n)! */
+        result += term;
+        n++;
+    }
+    return result;
+}
+
+/* 三角函數：tan = sin/cos */
+double my_tan(double x) {
+    double cos_x = my_cos(x);
+    if (my_fabs(cos_x) < 1e-10) return MY_NAN; /* 避免除以零 */
+    return my_sin(x) / cos_x;
+}
+
+/* 反三角函數：asin 使用泰勒展開 */
+double my_asin(double x) {
+    if (x < -1.0 || x > 1.0) return MY_NAN;
+    double result = x, term = x;
+    int n = 1;
+    while (my_fabs(term) > 1e-10) {
+        term *= (x * x * (2 * n - 1) * (2 * n - 1)) / (2 * n * (2 * n + 1));
+        result += term;
+        n++;
+    }
+    return result;
+}
+
+/* 反三角函數：acos = π/2 - asin */
+double my_acos(double x) {
+    if (x < -1.0 || x > 1.0) return MY_NAN;
+    return MY_PI / 2.0 - my_asin(x);
+}
+
+/* 反三角函數：atan 使用泰勒展開 */
+double my_atan(double x) {
+    if (x < -1.0 || x > 1.0) {
+        return x > 0 ? MY_PI / 2.0 : -MY_PI / 2.0;
+    }
+    double result = x, term = x;
+    int n = 1;
+    while (my_fabs(term) > 1e-10) {
+        term *= -x * x * (2 * n - 1) / (2 * n + 1);
+        result += term;
+        n++;
+    }
+    return result;
+}
+
+/* atan2：考慮象限 */
+double my_atan2(double y, double x) {
+    if (x > 0) return my_atan(y / x);
+    if (x < 0 && y >= 0) return my_atan(y / x) + MY_PI;
+    if (x < 0 && y < 0) return my_atan(y / x) - MY_PI;
+    if (x == 0 && y > 0) return MY_PI / 2.0;
+    if (x == 0 && y < 0) return -MY_PI / 2.0;
+    return MY_NAN;
+}
+
+/* 指數函數：exp 使用泰勒展開 */
+double my_exp(double x) {
+    double result = 1.0, term = 1.0;
+    int n = 1;
+    while (my_fabs(term) > 1e-10) {
+        term *= x / n;
+        result += term;
+        n++;
+    }
+    return result;
+}
+
+/* 自然對數：log 使用牛頓迭代法 */
+double my_log(double x) {
+    if (x <= 0) return MY_NAN;
+    double result = 0.0;
+    if (x != 1.0) {
+        double guess = 1.0;
+        for (int i = 0; i < 20; ++i) { /* 迭代次數 */
+            guess -= (my_exp(guess) - x) / my_exp(guess); /* 牛頓法 */
+        }
+        result = guess;
+    }
+    return result;
+}
+
+/* 常用對數：log10 = log(x)/log(10) */
+double my_log10(double x) {
+    return my_log(x) / MY_LN10;
+}
+
+/* 冪函數：pow(x, y) = exp(y * log(x)) */
+double my_pow(double x, double y) {
+    if (x < 0 && y != (int)y) return MY_NAN; /* 負數的非整數次冪無定義 */
+    if (x == 0 && y <= 0) return MY_NAN;
+    return my_exp(y * my_log(x));
+}
+
+/* 平方根：使用牛頓迭代法 */
+double my_sqrt(double x) {
+    if (x < 0) return MY_NAN;
+    if (x == 0) return 0.0;
+    double guess = x;
+    for (int i = 0; i < 20; ++i) {
+        guess = 0.5 * (guess + x / guess); /* 牛頓法 */
+    }
+    return guess;
+}
+
+/* 向上取整 */
+double my_ceil(double x) {
+    int i = (int)x;
+    return (x > i) ? (double)(i + 1) : (double)i;
+}
+
+/* 向下取整 */
+double my_floor(double x) {
+    return (double)((int)x);
+}
+
+/* 絕對值 */
+double my_fabs(double x) {
+    return (x < 0) ? -x : x;
+}
+
+/* 模運算 */
+double my_fmod(double x, double y) {
+    if (y == 0) return MY_NAN;
+    int quotient = (int)(x / y);
+    return x - quotient * y;
+}
