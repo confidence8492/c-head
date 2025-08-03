@@ -1,5 +1,5 @@
 #include "basic.h"  // 引入自定義的標頭檔案
-#include <unistd.h>  // 使用 write 系統呼叫
+#include "standard.h"  // 使用 write 系統呼叫
 
 // 輸出單個字元
 void printchar(char c) {
